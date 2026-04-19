@@ -26,7 +26,12 @@ export default component$((props: { sharedState: any }) => {
     tokenInterval: null as any,
     tokenTimeout: null as any,
     alignmentGuides: { x: [] as number[], y: [] as number[] },
-    clipboard: null as { places: Place[], transitions: Transition[], arcs: Arc[] } | null
+    clipboard: null as { places: Place[], transitions: Transition[], arcs: Arc[] } | null,
+    isRecording: false,
+    recorder: null as any,
+    chunks: [] as Blob[],
+    showExportMenu: false,
+    isDark: false
   });
 
   const ss = props.sharedState;
@@ -53,6 +58,24 @@ export default component$((props: { sharedState: any }) => {
     }
   });
 
+  const startRecording = $(() => {
+    if (!canvasRef.value) return;
+    const stream = canvasRef.value.captureStream(60);
+    const mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+    state.chunks = [];
+    mediaRecorder.ondataavailable = (e) => { if (e.data.size > 0) state.chunks.push(e.data); };
+    mediaRecorder.onstop = () => {
+      const blob = new Blob(state.chunks, { type: 'video/webm' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = `petri_sim_${Date.now()}.webm`; a.click();
+      URL.revokeObjectURL(url);
+    };
+    mediaRecorder.start();
+    state.recorder = mediaRecorder; state.isRecording = true; state.isSimulating = true; state.showExportMenu = false;
+  });
+
+  const stopRecording = $(() => { if (state.recorder) { state.recorder.stop(); state.isRecording = false; } });
+
   const handleMouseDown = $((e: MouseEvent) => {
     if (!canvasRef.value) return;
     const rect = canvasRef.value.getBoundingClientRect();
@@ -64,7 +87,7 @@ export default component$((props: { sharedState: any }) => {
     const clickedP = ss.places.find((p: Place) => {
       const sX = p.x * ss.camera.zoom + ss.camera.x + rect.width / 2;
       const sY = p.y * ss.camera.zoom + ss.camera.y + rect.height / 2;
-      return Math.sqrt((sX - mX) ** 2 + (sY - mY) ** 2) < 25;
+      return Math.sqrt((sX - mX)**2 + (sY - mY)**2) < 25;
     });
     const clickedT = ss.transitions.find((t: Transition) => {
       const sX = t.x * ss.camera.zoom + ss.camera.x + rect.width / 2;
@@ -78,11 +101,11 @@ export default component$((props: { sharedState: any }) => {
     }
     if (state.mode === 'place' && !clickedP && !clickedT) {
       const id = `p${ss.nextPId++}`;
-      ss.places = [...ss.places, { id, name: id, tokens: 0, x: Math.round(wX / 10) * 10, y: Math.round(wY / 10) * 10 }];
+      ss.places = [...ss.places, { id, name: id, tokens: 0, x: Math.round(wX/10)*10, y: Math.round(wY/10)*10 }];
       state.nodeScales[id] = 0;
     } else if (state.mode === 'transition' && !clickedP && !clickedT) {
       const id = `t${ss.nextTId++}`;
-      ss.transitions = [...ss.transitions, { id, name: id, x: Math.round(wX / 10) * 10, y: Math.round(wY / 10) * 10 }];
+      ss.transitions = [...ss.transitions, { id, name: id, x: Math.round(wX/10)*10, y: Math.round(wY/10)*10 }];
       state.nodeScales[id] = 0;
     } else if (state.mode === 'token' && clickedP) {
       const delta = (e.ctrlKey || e.metaKey) ? -1 : 1;
@@ -117,9 +140,9 @@ export default component$((props: { sharedState: any }) => {
           const from = ss.places.find(p => p.id === arc.from) || ss.transitions.find(t => t.id === arc.from);
           const to = ss.places.find(p => p.id === arc.to) || ss.transitions.find(t => t.id === arc.to);
           if (from && to) {
-            const dx = to.x - from.x; const dy = to.y - from.y; const len2 = dx * dx + dy * dy; const t = Math.max(0, Math.min(1, ((wX - from.x) * dx + (wY - from.y) * dy) / len2));
-            const pX = from.x + t * dx; const pY = from.y + t * dy; const dist = Math.sqrt((wX - pX) ** 2 + (wY - pY) ** 2);
-            if (dist < 10 / ss.camera.zoom) { hitArc = `arc_${arc.from}_${arc.to}`; break; }
+             const dx = to.x - from.x; const dy = to.y - from.y; const len2 = dx*dx + dy*dy; const t = Math.max(0, Math.min(1, ((wX - from.x) * dx + (wY - from.y) * dy) / len2));
+             const pX = from.x + t * dx; const pY = from.y + t * dy; const dist = Math.sqrt((wX - pX)**2 + (wY - pY)**2);
+             if (dist < 10 / ss.camera.zoom) { hitArc = `arc_${arc.from}_${arc.to}`; break; }
           }
         }
         if (hitArc) ss.selectedIds = [hitArc]; else { ss.selectedIds = []; state.marqueeStart = { x: wX, y: wY }; state.marqueeEnd = { x: wX, y: wY }; }
@@ -183,18 +206,27 @@ export default component$((props: { sharedState: any }) => {
     if (!canvasRef.value) return;
     const canvas = canvasRef.value; const ctx = canvas.getContext('2d'); if (!ctx) return;
     let animationId: number; const particles = [] as any[];
-    const simInterval = setInterval(async () => { if (!state.isSimulating) return; const enabled = await getEnabledTransitions(); if (enabled.length > 0) { enabled.forEach((t: Transition) => fireTransition(t.id)); } }, 400);
+    
+    // Theme Tracking
+    const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+    state.isDark = mediaQuery.matches;
+    const themeListener = (e: MediaQueryListEvent) => { state.isDark = e.matches; };
+    mediaQuery.addEventListener('change', themeListener);
 
-    const copyToClipboard = $(() => {
+    const simInterval = setInterval(async () => { if (!state.isSimulating) return; const enabled = await getEnabledTransitions(); if (enabled.length > 0) { enabled.forEach((t: Transition) => fireTransition(t.id)); } }, 400);
+    
+    (window as any).dispatchExport = () => { state.showExportMenu = !state.showExportMenu; };
+
+    const copyToClipboard = () => {
       const selPlaces = ss.places.filter((p: Place) => ss.selectedIds.includes(p.id));
       const selTransitions = ss.transitions.filter((t: Transition) => ss.selectedIds.includes(t.id));
       const selArcs = ss.arcs.filter((a: Arc) => ss.selectedIds.includes(a.from) && ss.selectedIds.includes(a.to));
       if (selPlaces.length > 0 || selTransitions.length > 0) {
         state.clipboard = JSON.parse(JSON.stringify({ places: selPlaces, transitions: selTransitions, arcs: selArcs }));
       }
-    });
+    };
 
-    const pasteFromClipboard = $(() => {
+    const pasteFromClipboard = () => {
       if (!state.clipboard) return;
       const idMap: Record<string, string> = {};
       const newPlaces = state.clipboard.places.map((p: Place) => {
@@ -208,9 +240,9 @@ export default component$((props: { sharedState: any }) => {
       const newArcs = state.clipboard.arcs.map((a: Arc) => ({ from: idMap[a.from], to: idMap[a.to] }));
       ss.places = [...ss.places, ...newPlaces]; ss.transitions = [...ss.transitions, ...newTransitions]; ss.arcs = [...ss.arcs, ...newArcs];
       ss.selectedIds = [...newPlaces.map(p => p.id), ...newTransitions.map(t => t.id)];
-    });
+    };
 
-    const handleKey = $((e: KeyboardEvent) => {
+    const handleKey = (e: KeyboardEvent) => {
       const k = e.key.toLowerCase();
       if (e.ctrlKey || e.metaKey) {
         if (k === 'c') { e.preventDefault(); copyToClipboard(); }
@@ -231,15 +263,36 @@ export default component$((props: { sharedState: any }) => {
         ss.places = ss.places.map((p: Place) => ss.selectedIds.includes(p.id) ? { ...p, x: p.x + dx, y: p.y + dy } : p);
         ss.transitions = ss.transitions.map((t: Transition) => ss.selectedIds.includes(t.id) ? { ...t, x: t.x + dx, y: t.y + dy } : t);
       }
-    });
+    };
     window.addEventListener('keydown', handleKey);
+
     const render = () => {
       const dpr = window.devicePixelRatio || 1; const rect = canvas.getBoundingClientRect();
       if (canvas.width !== rect.width * dpr || canvas.height !== rect.height * dpr) { canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; }
       ctx.clearRect(0, 0, canvas.width, canvas.height); state.time += 0.016;
+
+      // Theme-aware colors
+      const colors = state.isDark ? {
+        grid: "#252525",
+        arc: "rgba(255,255,255,0.15)",
+        nodeFill: "#111",
+        nodeBorder: "#eee",
+        nodeText: "#888",
+        transFill: "#222",
+        transEnabled: "#006c84"
+      } : {
+        grid: "#e5e5e5",
+        arc: "rgba(0,0,0,0.15)",
+        nodeFill: "#fff",
+        nodeBorder: "#111",
+        nodeText: "#666",
+        transFill: "#eee",
+        transEnabled: "#006c84"
+      };
+
       [...ss.places, ...ss.transitions].forEach(node => { if (state.nodeScales[node.id] === undefined) state.nodeScales[node.id] = 1; state.nodeScales[node.id] += (1 - state.nodeScales[node.id]) * 0.15; });
       for (let i = particles.length - 1; i >= 0; i--) { const p = particles[i]; p.x += p.vx; p.y += p.vy; p.life -= 0.02; if (p.life <= 0) particles.splice(i, 1); }
-      if (state.triggerParticles) { for (let i = 0; i < 30; i++) particles.push({ x: state.triggerParticles.x, y: state.triggerParticles.y, vx: (Math.random() - 0.5) * 8, vy: (Math.random() - 0.5) * 8, life: 1.0, color: state.triggerParticles.color }); state.triggerParticles = null; }
+      if (state.triggerParticles) { for (let i = 0; i < 30; i++) particles.push({ x: state.triggerParticles.x, y: state.triggerParticles.y, vx: (Math.random()-0.5)*8, vy: (Math.random()-0.5)*8, life: 1.0, color: state.triggerParticles.color }); state.triggerParticles = null; }
       state.movingTokens = state.movingTokens.map(mt => { const next = mt.progress + 0.04; return { ...mt, progress: next >= 1 ? 1 : next }; });
       state.movingTokens.filter(t => t.progress >= 1).forEach(mt => {
         if (!mt.isPhaseTwo) {
@@ -249,41 +302,41 @@ export default component$((props: { sharedState: any }) => {
       });
       ctx.save(); ctx.scale(dpr, dpr); ctx.translate(rect.width / 2 + ss.camera.x, rect.height / 2 + ss.camera.y); ctx.scale(ss.camera.zoom, ss.camera.zoom);
       const zoom = ss.camera.zoom; const gridSize = 100;
-      const vL = (-rect.width / 2 - ss.camera.x) / zoom; const vR = (rect.width / 2 - ss.camera.x) / zoom; const vT = (-rect.height / 2 - ss.camera.y) / zoom; const vB = (rect.height / 2 - ss.camera.y) / zoom;
-      ctx.beginPath(); ctx.strokeStyle = "#252525"; ctx.lineWidth = 0.5 / zoom;
+      const vL = (-rect.width/2 - ss.camera.x) / zoom; const vR = (rect.width/2 - ss.camera.x) / zoom; const vT = (-rect.height/2 - ss.camera.y) / zoom; const vB = (rect.height/2 - ss.camera.y) / zoom;
+      ctx.beginPath(); ctx.strokeStyle = colors.grid; ctx.lineWidth = 0.5 / zoom;
       for (let x = Math.floor(vL / gridSize) * gridSize; x <= vR; x += gridSize) { ctx.moveTo(x, vT); ctx.lineTo(x, vB); }
       for (let y = Math.floor(vT / gridSize) * gridSize; y <= vB; y += gridSize) { ctx.moveTo(vL, y); ctx.lineTo(vR, y); } ctx.stroke();
-      ctx.beginPath(); ctx.strokeStyle = "rgba(255, 79, 154, 0.4)"; ctx.lineWidth = 1 / zoom; ctx.setLineDash([5 / zoom, 5 / zoom]);
+      ctx.beginPath(); ctx.strokeStyle = "rgba(255, 79, 154, 0.4)"; ctx.lineWidth = 1/zoom; ctx.setLineDash([5/zoom, 5/zoom]);
       state.alignmentGuides.x.forEach(x => { ctx.moveTo(x, vT); ctx.lineTo(x, vB); });
       state.alignmentGuides.y.forEach(y => { ctx.moveTo(vL, y); ctx.lineTo(vR, y); });
       ctx.stroke(); ctx.setLineDash([]);
       ss.arcs.forEach((arc: Arc) => {
         const arcId = `arc_${arc.from}_${arc.to}`; const isSelected = ss.selectedIds.includes(arcId); const from = ss.places.find((p: Place) => p.id === arc.from) || ss.transitions.find((t: Transition) => t.id === arc.from); const to = ss.places.find((p: Place) => p.id === arc.to) || ss.transitions.find((t: Transition) => t.id === arc.to);
         if (from && to) {
-          if (isSelected) { ctx.strokeStyle = "rgba(255, 79, 154, 0.3)"; ctx.lineWidth = 6 / zoom; ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y); ctx.stroke(); }
-          ctx.strokeStyle = isSelected ? "var(--color-riso-pink)" : "rgba(255,255,255,0.2)"; ctx.lineWidth = (isSelected ? 3 : 2) / zoom; const dx = to.x - from.x; const dy = to.y - from.y; const angle = Math.atan2(dy, dx); ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y); ctx.stroke();
-          const aX = to.x - 22 * Math.cos(angle); const aY = to.y - 22 * Math.sin(angle); ctx.save(); ctx.translate(aX, aY); ctx.rotate(angle); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-10 / zoom, -5 / zoom); ctx.lineTo(-10 / zoom, 5 / zoom); ctx.closePath(); ctx.fillStyle = isSelected ? "var(--color-riso-pink)" : "rgba(255,255,255,0.4)"; if (isSelected) { ctx.strokeStyle = "rgba(255, 79, 154, 0.5)"; ctx.lineWidth = 1 / zoom; ctx.stroke(); } ctx.fill(); ctx.restore();
+          if (isSelected) { ctx.strokeStyle = "rgba(255, 79, 154, 0.3)"; ctx.lineWidth = 6/zoom; ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y); ctx.stroke(); }
+          ctx.strokeStyle = isSelected ? "var(--color-riso-pink)" : colors.arc; ctx.lineWidth = (isSelected ? 3 : 2)/zoom; const dx = to.x - from.x; const dy = to.y - from.y; const angle = Math.atan2(dy, dx); ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(to.x, to.y); ctx.stroke();
+          const aX = to.x - 22 * Math.cos(angle); const aY = to.y - 22 * Math.sin(angle); ctx.save(); ctx.translate(aX, aY); ctx.rotate(angle); ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(-10 / zoom, -5 / zoom); ctx.lineTo(-10 / zoom, 5 / zoom); ctx.closePath(); ctx.fillStyle = isSelected ? "var(--color-riso-pink)" : colors.arc; if (isSelected) { ctx.strokeStyle = "rgba(255, 79, 154, 0.5)"; ctx.lineWidth = 1/zoom; ctx.stroke(); } ctx.fill(); ctx.restore();
         }
       });
-      if (state.mode === 'arc' && state.arcStartId) { const from = ss.places.find((p: Place) => p.id === state.arcStartId) || ss.transitions.find((t: Transition) => t.id === state.arcStartId); if (from) { ctx.setLineDash([5 / zoom, 5 / zoom]); ctx.strokeStyle = "var(--color-riso-pink)"; ctx.lineWidth = 1.5 / zoom; ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(state.currentMouseWorld.x, state.currentMouseWorld.y); ctx.stroke(); ctx.setLineDash([]); } }
+      if (state.mode === 'arc' && state.arcStartId) { const from = ss.places.find((p: Place) => p.id === state.arcStartId) || ss.transitions.find((t: Transition) => t.id === state.arcStartId); if (from) { ctx.setLineDash([5/zoom, 5/zoom]); ctx.strokeStyle = "var(--color-riso-pink)"; ctx.lineWidth = 1.5/zoom; ctx.beginPath(); ctx.moveTo(from.x, from.y); ctx.lineTo(state.currentMouseWorld.x, state.currentMouseWorld.y); ctx.stroke(); ctx.setLineDash([]); } }
       ss.places.forEach((p: Place) => {
         const isSelected = ss.selectedIds.includes(p.id); const isStart = state.arcStartId === p.id; const scale = (state.nodeScales[p.id] || 1); ctx.save(); ctx.translate(p.x, p.y); ctx.scale(scale, scale);
-        if (isSelected || isStart) { ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.fillStyle = "rgba(255, 79, 154, 0.15)"; ctx.fill(); ctx.strokeStyle = isStart ? "var(--color-riso-pink)" : "rgba(255, 79, 154, 0.3)"; ctx.lineWidth = isStart ? 2 / zoom : 1 / zoom; ctx.stroke(); }
-        ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.fillStyle = "#111"; ctx.fill(); ctx.strokeStyle = isSelected ? "var(--color-riso-pink)" : "#eee"; ctx.lineWidth = (isSelected ? 3 : 2) / zoom; ctx.stroke();
-        if (p.tokens > 0) { ctx.beginPath(); ctx.arc(0, 0, 10 + Math.sin(state.time * 5) * 1, 0, Math.PI * 2); ctx.fillStyle = "var(--color-riso-pink)"; ctx.fill(); ctx.fillStyle = "#fff"; ctx.font = `bold ${10 / zoom}px 'Inter'`; ctx.textAlign = "center"; ctx.fillText(p.tokens.toString(), 0, 4 / zoom); }
-        ctx.restore(); ctx.fillStyle = (isSelected || isStart) ? "var(--color-riso-pink)" : "#aaa"; ctx.font = `italic ${Math.max(6 / zoom, 9 / zoom)}px 'Playfair Display'`; ctx.textAlign = "center"; ctx.fillText(p.name, p.x, p.y + (38 / zoom));
+        if (isSelected || isStart) { ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.fillStyle = "rgba(255, 79, 154, 0.15)"; ctx.fill(); ctx.strokeStyle = isStart ? "var(--color-riso-pink)" : "rgba(255, 79, 154, 0.3)"; ctx.lineWidth = isStart ? 2/zoom : 1/zoom; ctx.stroke(); }
+        ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.fillStyle = colors.nodeFill; ctx.fill(); ctx.strokeStyle = isSelected ? "var(--color-riso-pink)" : colors.nodeBorder; ctx.lineWidth = (isSelected ? 3 : 2)/zoom; ctx.stroke();
+        if (p.tokens > 0) { ctx.beginPath(); ctx.arc(0, 0, 10 + Math.sin(state.time * 5) * 1, 0, Math.PI * 2); ctx.fillStyle = "var(--color-riso-pink)"; ctx.fill(); ctx.fillStyle = "#fff"; ctx.font = `bold ${10/zoom}px 'Inter'`; ctx.textAlign = "center"; ctx.fillText(p.tokens.toString(), 0, 4/zoom); }
+        ctx.restore(); ctx.fillStyle = (isSelected || isStart) ? "var(--color-riso-pink)" : colors.nodeText; ctx.font = `italic ${Math.max(6/zoom, 9/zoom)}px 'Playfair Display'`; ctx.textAlign = "center"; ctx.fillText(p.name, p.x, p.y + (38/zoom));
       });
       ss.transitions.forEach((t: Transition) => {
         const isSelected = ss.selectedIds.includes(t.id); const isStart = state.arcStartId === t.id; const scale = (state.nodeScales[t.id] || 1); const isEnabled = ss.arcs.filter((a: Arc) => a.to === t.id).every((a: Arc) => (ss.places.find((p: Place) => p.id === a.from)?.tokens || 0) > 0); ctx.save(); ctx.translate(t.x, t.y); ctx.scale(scale, scale);
-        if (isSelected || isStart) { ctx.fillStyle = "rgba(255, 79, 154, 0.15)"; ctx.fillRect(-26, -26, 52, 52); ctx.strokeStyle = isStart ? "var(--color-riso-pink)" : "rgba(255, 79, 154, 0.3)"; ctx.lineWidth = isStart ? 2 / zoom : 1 / zoom; ctx.strokeRect(-26, -26, 52, 52); }
-        ctx.fillStyle = isEnabled ? "#006c84" : "#222"; ctx.fillRect(-20, -20, 40, 40); ctx.strokeStyle = isSelected ? "var(--color-riso-pink)" : "#eee"; ctx.lineWidth = (isSelected ? 3 : 2) / zoom; ctx.strokeRect(-20, -20, 40, 40);
-        ctx.restore(); ctx.fillStyle = (isSelected || isStart) ? "var(--color-riso-pink)" : "#aaa"; ctx.font = `bold ${Math.max(6 / zoom, 9 / zoom)}px 'Inter'`; ctx.textAlign = "center"; ctx.fillText(t.name, t.x, t.y + (50 / zoom));
+        if (isSelected || isStart) { ctx.fillStyle = "rgba(255, 79, 154, 0.15)"; ctx.fillRect(-26, -26, 52, 52); ctx.strokeStyle = isStart ? "var(--color-riso-pink)" : "rgba(255, 79, 154, 0.3)"; ctx.lineWidth = isStart ? 2/zoom : 1/zoom; ctx.strokeRect(-26, -26, 52, 52); }
+        ctx.fillStyle = isEnabled ? colors.transEnabled : colors.transFill; ctx.fillRect(-20, -20, 40, 40); ctx.strokeStyle = isSelected ? "var(--color-riso-pink)" : colors.nodeBorder; ctx.lineWidth = (isSelected ? 3 : 2)/zoom; ctx.strokeRect(-20, -20, 40, 40);
+        ctx.restore(); ctx.fillStyle = (isSelected || isStart) ? "var(--color-riso-pink)" : colors.nodeText; ctx.font = `bold ${Math.max(6/zoom, 9/zoom)}px 'Inter'`; ctx.textAlign = "center"; ctx.fillText(t.name, t.x, t.y + (50/zoom));
       });
-      state.movingTokens.forEach(mt => { const x = mt.fromX + (mt.toX - mt.fromX) * mt.progress; const y = mt.fromY + (mt.toY - mt.fromY) * mt.progress; ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI * 2); ctx.fillStyle = "var(--color-riso-pink)"; ctx.fill(); });
-      if (state.marqueeStart && state.marqueeEnd) { ctx.fillStyle = "rgba(255, 79, 154, 0.05)"; ctx.fillRect(Math.min(state.marqueeStart.x, state.marqueeEnd.x), Math.min(state.marqueeStart.y, state.marqueeEnd.y), Math.abs(state.marqueeEnd.x - state.marqueeStart.x), Math.abs(state.marqueeEnd.y - state.marqueeStart.y)); ctx.strokeStyle = "rgba(255, 79, 154, 0.4)"; ctx.lineWidth = 1 / zoom; ctx.strokeRect(Math.min(state.marqueeStart.x, state.marqueeEnd.x), Math.min(state.marqueeStart.y, state.marqueeEnd.y), Math.abs(state.marqueeEnd.x - state.marqueeStart.x), Math.abs(state.marqueeEnd.y - state.marqueeStart.y)); }
+      state.movingTokens.forEach(mt => { const x = mt.fromX + (mt.toX-mt.fromX)*mt.progress; const y = mt.fromY + (mt.toY-mt.fromY)*mt.progress; ctx.beginPath(); ctx.arc(x, y, 10, 0, Math.PI*2); ctx.fillStyle = "var(--color-riso-pink)"; ctx.fill(); });
+      if (state.marqueeStart && state.marqueeEnd) { ctx.fillStyle = "rgba(255, 79, 154, 0.05)"; ctx.fillRect(Math.min(state.marqueeStart.x, state.marqueeEnd.x), Math.min(state.marqueeStart.y, state.marqueeEnd.y), Math.abs(state.marqueeEnd.x-state.marqueeStart.x), Math.abs(state.marqueeEnd.y-state.marqueeStart.y)); ctx.strokeStyle = "rgba(255, 79, 154, 0.4)"; ctx.lineWidth = 1/zoom; ctx.strokeRect(Math.min(state.marqueeStart.x, state.marqueeEnd.x), Math.min(state.marqueeStart.y, state.marqueeEnd.y), Math.abs(state.marqueeEnd.x-state.marqueeStart.x), Math.abs(state.marqueeEnd.y-state.marqueeStart.y)); }
       ctx.restore(); animationId = requestAnimationFrame(render);
     };
-    render(); cleanup(() => { clearInterval(simInterval); cancelAnimationFrame(animationId); window.removeEventListener('keydown', handleKey); });
+    render(); cleanup(() => { clearInterval(simInterval); cancelAnimationFrame(animationId); window.removeEventListener('keydown', handleKey); mediaQuery.removeEventListener('change', themeListener); });
   });
 
   const tools = [
@@ -297,19 +350,43 @@ export default component$((props: { sharedState: any }) => {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-      <div style={{ position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'rgba(40,40,40,0.85)', backdropFilter: 'blur(10px)', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', padding: '6px', gap: '6px', zIndex: 100, border: '1px solid #444' }}>
+      
+      {state.showExportMenu && (
+        <div style={{ position: 'absolute', top: '50px', right: '12px', background: 'var(--color-ui-bg)', backdropFilter: 'blur(20px)', borderRadius: '12px', border: '1px solid var(--color-ui-border)', padding: '16px', zIndex: 2000, minWidth: '220px', boxShadow: '0 16px 64px rgba(0,0,0,0.4)', animation: 'slideInRight 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>
+           <h3 style={{ margin: '0 0 12px 0', fontSize: '10px', letterSpacing: '2px', color: '#888', fontWeight: 900 }}>SYSTEM EXPORT</h3>
+           <button onClick$={startRecording} style={{ width: '100%', padding: '12px', background: 'none', border: '2px solid var(--color-riso-pink)', color: 'var(--color-text)', borderRadius: '8px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', transition: '0.2s', fontWeight: 700 }} onMouseEnter$={(e: any) => e.target.style.background = 'rgba(255, 79, 154, 0.1)'} onMouseLeave$={(e: any) => e.target.style.background = 'none'}>
+              <div style={{ width: '10px', height: '10px', borderRadius: '5px', background: 'red', boxShadow: '0 0 8px red' }}></div>
+              RECORD VIDEO SIMULATION
+           </button>
+           <p style={{ margin: '12px 0 0 0', fontSize: '8px', color: '#666', fontStyle: 'italic', lineHeight: '1.4' }}>Captures high-fidelity canvas stream in WebM format. Simulation will auto-start.</p>
+        </div>
+      )}
+
+      {state.isRecording && (
+        <div style={{ position: 'absolute', top: '12px', right: '12px', display: 'flex', alignItems: 'center', gap: '12px', background: 'rgba(255,0,0,0.1)', border: '1px solid red', padding: '4px 12px', borderRadius: '20px', zIndex: 2000 }}>
+           <div style={{ width: '10px', height: '10px', borderRadius: '5px', background: 'red', animation: 'pulseRed 1s infinite' }}></div>
+           <span style={{ color: 'red', fontSize: '10px', fontWeight: 900, letterSpacing: '1px' }}>RECORDING SYSTEM DYNAMICS...</span>
+           <button onClick$={stopRecording} style={{ background: 'red', border: 'none', color: 'white', fontSize: '8px', fontWeight: 900, padding: '2px 8px', borderRadius: '4px', cursor: 'pointer' }}>STOP & DOWNLOAD</button>
+        </div>
+      )}
+
+      <div style={{ position: 'absolute', top: '12px', left: '50%', transform: 'translateX(-50%)', background: 'var(--color-ui-bg)', backdropFilter: 'blur(10px)', borderRadius: '12px', boxShadow: '0 8px 32px rgba(0,0,0,0.5)', display: 'flex', padding: '6px', gap: '6px', zIndex: 100, border: '1px solid var(--color-ui-border)' }}>
         {tools.map(t => (
           <div key={t.id} style={{ position: 'relative' }}>
-            {state.hoveredTool === t.id && (<div style={{ position: 'absolute', bottom: '-42px', left: '50%', transform: 'translateX(-50%)', background: '#000', color: 'white', padding: '4px 12px', borderRadius: '4px', fontSize: '9px', fontWeight: 800, whiteSpace: 'nowrap', border: '1px solid #444', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', pointerEvents: 'none', animation: 'tooltipInBottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>{t.name}<div style={{ position: 'absolute', top: '-4px', left: '50%', transform: 'translateX(-50%) rotate(45deg)', width: '8px', height: '8px', background: '#000', borderLeft: '1px solid #444', borderTop: '1px solid #444' }}></div></div>)}
-            <button onClick$={() => state.mode = t.id as any} onMouseEnter$={() => state.hoveredTool = t.id} onMouseLeave$={() => state.hoveredTool = null} style={{ width: '32px', height: '32px', border: 'none', borderRadius: '8px', background: state.mode === t.id ? 'var(--color-riso-pink)' : 'none', color: state.mode === t.id ? 'white' : '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s' }}> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d={t.path} /></svg> </button>
+             {state.hoveredTool === t.id && ( <div style={{ position: 'absolute', bottom: '-42px', left: '50%', transform: 'translateX(-50%)', background: '#000', color: 'white', padding: '4px 12px', borderRadius: '4px', fontSize: '9px', fontWeight: 800, whiteSpace: 'nowrap', border: '1px solid #444', boxShadow: '0 4px 12px rgba(0,0,0,0.4)', pointerEvents: 'none', animation: 'tooltipInBottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275)' }}>{t.name}<div style={{ position: 'absolute', top: '-4px', left: '50%', transform: 'translateX(-50%) rotate(45deg)', width: '8px', height: '8px', background: '#000', borderLeft: '1px solid #444', borderTop: '1px solid #444' }}></div></div> )}
+             <button onClick$={() => state.mode = t.id as any} onMouseEnter$={() => state.hoveredTool = t.id} onMouseLeave$={() => state.hoveredTool = null} style={{ width: '32px', height: '32px', border: 'none', borderRadius: '8px', background: state.mode === t.id ? 'var(--color-riso-pink)' : 'none', color: state.mode === t.id ? 'white' : '#888', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: '0.2s' }}> <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d={t.path} /></svg> </button>
           </div>
         ))}
       </div>
-      <style>{`@keyframes tooltipInBottom { from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.9); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }`}</style>
+      <style>{`
+        @keyframes tooltipInBottom { from { opacity: 0; transform: translateX(-50%) translateY(-10px) scale(0.9); } to { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); } }
+        @keyframes slideInRight { from { opacity: 0; transform: translateX(20px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pulseRed { 0% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(1.2); } 100% { opacity: 1; transform: scale(1); } }
+      `}</style>
       <div style={{ position: 'absolute', bottom: '24px', right: '24px', zIndex: 100 }}>
-        <button onClick$={() => state.isSimulating = !state.isSimulating} style={{ background: state.isSimulating ? '#ff4f9a' : 'rgba(40,40,40,0.85)', backdropFilter: 'blur(10px)', color: state.isSimulating ? 'white' : 'var(--color-riso-pink)', border: '2px solid var(--color-riso-pink)', width: '56px', height: '56px', borderRadius: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: state.isSimulating ? '0 0 32px rgba(255, 79, 154, 0.6)' : '0 8px 24px rgba(0,0,0,0.5)', transition: '0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', transform: state.isSimulating ? 'scale(1.1)' : 'scale(1)' }} > {state.isSimulating ? (<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg>) : (<svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style={{ marginLeft: '3px' }}><path d="M5 3l14 9-14 9V3z" /></svg>)} </button>
+         <button onClick$={() => state.isSimulating = !state.isSimulating} style={{ background: state.isSimulating ? '#ff4f9a' : 'var(--color-ui-bg)', backdropFilter: 'blur(10px)', color: state.isSimulating ? 'white' : 'var(--color-riso-pink)', border: '2px solid var(--color-riso-pink)', width: '56px', height: '56px', borderRadius: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: state.isSimulating ? '0 0 32px rgba(255, 79, 154, 0.6)' : '0 8px 24px rgba(0,0,0,0.5)', transition: '0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', transform: state.isSimulating ? 'scale(1.1)' : 'scale(1)' }} > {state.isSimulating ? ( <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg> ) : ( <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style={{ marginLeft: '3px' }}><path d="M5 3l14 9-14 9V3z"/></svg> )} </button>
       </div>
-      <canvas ref={canvasRef} onMouseDown$={handleMouseDown} onMouseMove$={handleMouseMove} onMouseUp$={handleMouseUp} onWheel$={handleWheel} style={{ width: '100%', height: '100%', background: '#111', cursor: state.isPanning ? 'grabbing' : state.mode === 'pan' ? 'grab' : state.mode === 'select' ? 'default' : state.mode === 'place' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="6" stroke="white" stroke-width="2" fill="black" fill-opacity="0.2"/></svg>') 12 12, crosshair` : state.mode === 'transition' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="12" height="12" stroke="white" stroke-width="2" fill="black" fill-opacity="0.2"/></svg>') 12 12, crosshair` : state.mode === 'token' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="5" fill="%23ff4f9a" stroke="white" stroke-width="1.5"/></svg>') 12 12, crosshair` : 'crosshair' }} />
+      <canvas ref={canvasRef} onMouseDown$={handleMouseDown} onMouseMove$={handleMouseMove} onMouseUp$={handleMouseUp} onWheel$={handleWheel} style={{ width: '100%', height: '100%', background: 'var(--color-bg-canvas)', cursor: state.isPanning ? 'grabbing' : state.mode === 'pan' ? 'grab' : state.mode === 'select' ? 'default' : state.mode === 'place' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="6" stroke="white" stroke-width="2" fill="black" fill-opacity="0.2"/></svg>') 12 12, crosshair` : state.mode === 'transition' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="12" height="12" stroke="white" stroke-width="2" fill="black" fill-opacity="0.2"/></svg>') 12 12, crosshair` : state.mode === 'token' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="5" fill="%23ff4f9a" stroke="white" stroke-width="1.5"/></svg>') 12 12, crosshair` : 'crosshair' }} />
     </div>
   );
 });

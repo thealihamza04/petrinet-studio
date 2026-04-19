@@ -1,65 +1,67 @@
-# Qwik City App ⚡️
+# petrinet-studio
 
-- [Qwik Docs](https://qwik.dev/)
-- [Discord](https://qwik.dev/chat)
-- [Qwik GitHub](https://github.com/QwikDev/qwik)
-- [@QwikDev](https://twitter.com/QwikDev)
-- [Vite](https://vitejs.dev/)
+A high-fidelity, Figma-inspired infinite canvas playground for **Petri Net** modeling and real-time simulation. Designed with a fusion of **Swiss International Style** and **Riso-Graph Editorial Aesthetics**, `petrinet-studio` provides a surgical, distraction-free environment for systems architecture and logical design.
+
+![PetriNet Studio Interface](https://raw.githubusercontent.com/thealihamza04/petrinet-studio/master/public/favicon.svg) *<!-- Replace with a real screenshot if available -->*
+
+## 🧘 Zen-Mode Modeling
+The studio is built for focus. By removing legacy UI clutter, it provides a "Zen-mode" environment where systems logic takes center stage on a boundless 12-column grid.
+
+## ✨ Key Features
+- **Figma-Style Infinite Canvas**: Fluidly navigate a boundless workspace with high-performance panning, zooming, and marquee selection.
+- **Real-Time Simulation Engine**: Execute system dynamics instantly. Watch tokens flow through transitions with surgical visual feedback.
+- **System Clipboard**: Professional-grade Pattern scaling with `[Ctrl+C/X/V]` support, featuring intelligent ID re-mapping and connectivity persistence.
+- **Architectural Smart Guides**: High-contrast alignment lines that automatically snap nodes horizontally and vertically for professional symmetry.
+- **Automated Persistence**: Never lose a state. The engine silently archives your architecture in the background with real-time auto-save.
+- **Blueprint Cursors**: Context-aware SVG cursors that reflect the current drafting mode (Place, Transition, Arc, Token).
+
+## ⌨️ Interaction Controls
+Designed for high-velocity drafting, the workstation is purely keyboard-driven:
+
+| Key | Action |
+| :--- | :--- |
+| **[V] / [Esc]** | Select Mode (Marquee & Drag) |
+| **[P] / [O]** | Place Tool |
+| **[T] / [R]** | Transition Tool |
+| **[A] / [L]** | Link (Arc) Tool |
+| **[K]** | Token Tool (Click to add, [Ctrl+Click] to subtract) |
+| **[H]** | Hand (Pan) Tool |
+| **[Del] / [BS]** | Delete Selection |
+| **[Ctrl+C/X/V]** | Copy / Cut / Paste |
+
+## 🎨 Design Philosophy
+`petrinet-studio` is a state-of-the-art implementation of the **Riso-Swiss** aesthetic:
+- **Swiss International Style**: Strict mathematical grids, massive bold headers, and elegant visual hierarchy.
+- **Riso-Graph Texture**: A high-contrast palette of **Riso Pink (#ff4f9a)** and **Deep Blue (#006c84)** over a warm paper texture with subtle digital grain.
+- **Typography**: Neo-Grotesque (**Inter**) for technical data and elegant serifs (**Playfair Display**) for artistic emphasis.
+
+## 🚀 Getting Started
+
+### Prerequisites
+- [Node.js](https://nodejs.org/) (v18 or higher)
+- npm or yarn
+
+### Installation
+```bash
+# Clone the repository
+git clone https://github.com/thealihamza04/petrinet-studio.git
+
+# Navigate to the directory
+cd petrinet-studio
+
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+```
+
+## 🏗️ Tech Stack
+- **Framework**: [Qwik](https://qwik.builder.io/) (Resumable Full-stack Web Framework)
+- **Runtime**: [Vite](https://vitejs.dev/)
+- **Engine**: Pure HTML5 Canvas API with a custom reactive state-machine.
+- **Styling**: Vanilla CSS with Riso-Swiss design tokens.
 
 ---
 
-## Project Structure
-
-This project is using Qwik with [QwikCity](https://qwik.dev/qwikcity/overview/). QwikCity is just an extra set of tools on top of Qwik to make it easier to build a full site, including directory-based routing, layouts, and more.
-
-Inside your project, you'll see the following directory structure:
-
-```
-├── public/
-│   └── ...
-└── src/
-    ├── components/
-    │   └── ...
-    └── routes/
-        └── ...
-```
-
-- `src/routes`: Provides the directory-based routing, which can include a hierarchy of `layout.tsx` layout files, and an `index.tsx` file as the page. Additionally, `index.ts` files are endpoints. Please see the [routing docs](https://qwik.dev/qwikcity/routing/overview/) for more info.
-
-- `src/components`: Recommended directory for components.
-
-- `public`: Any static assets, like images, can be placed in the public directory. Please see the [Vite public directory](https://vitejs.dev/guide/assets.html#the-public-directory) for more info.
-
-## Add Integrations and deployment
-
-Use the `npm run qwik add` command to add additional integrations. Some examples of integrations includes: Cloudflare, Netlify or Express Server, and the [Static Site Generator (SSG)](https://qwik.dev/qwikcity/guides/static-site-generation/).
-
-```shell
-npm run qwik add # or `yarn qwik add`
-```
-
-## Development
-
-Development mode uses [Vite's development server](https://vitejs.dev/). The `dev` command will server-side render (SSR) the output during development.
-
-```shell
-npm start # or `yarn start`
-```
-
-> Note: during dev mode, Vite may request a significant number of `.js` files. This does not represent a Qwik production build.
-
-## Preview
-
-The preview command will create a production build of the client modules, a production build of `src/entry.preview.tsx`, and run a local server. The preview server is only for convenience to preview a production build locally and should not be used as a production server.
-
-```shell
-npm run preview # or `yarn preview`
-```
-
-## Production
-
-The production build will generate client and server modules by running both client and server build commands. The build command will use Typescript to run a type check on the source code.
-
-```shell
-npm run build # or `yarn build`
-```
+Designed for architects of logic. Built with the soul of a high-end design studio.

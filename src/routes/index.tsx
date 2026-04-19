@@ -15,7 +15,7 @@ export default component$(() => {
   });
 
   return (
-    <div class="magnetic-target">
+    <div class="magnetic-target" style={{ background: 'var(--color-bg-app)', color: 'var(--color-text)', minHeight: '100vh', transition: '0.3s' }}>
       <div 
         id="custom-cursor" 
         style={{ 
@@ -33,18 +33,18 @@ export default component$(() => {
               Fundamentals
             </span>
           </h1>
-          <p class="editorial reveal reveal-3" style={{ fontSize: '1.5rem', marginTop: '2rem', maxWidth: '600px' }}>
+          <p class="editorial reveal reveal-3" style={{ fontSize: '1.5rem', marginTop: '2rem', maxWidth: '600px', opacity: 0.8 }}>
             A systematic introduction to the grammar of concurrency and the logic of distributed state.
           </p>
         </header>
 
         {/* SECTION 1: THE ANATOMY */}
-        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-black)', paddingTop: '1rem' }} class="reveal">
+        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-ui-border)', paddingTop: '1rem' }} class="reveal">
           <span class="metadata">Basic Concepts // 01</span>
           <h2 style={{ fontSize: '3rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>The Anatomy</h2>
         </div>
         <div style={{ gridColumn: '5 / span 8', marginTop: '3rem' }} class="reveal">
-          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
+          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
             A Petri net consists of three primitive types: <span class="metadata" style={{color: 'var(--color-riso-pink)'}}>Places</span>, 
             <span class="metadata" style={{color: 'var(--color-deep-blue)'}}>Transitions</span>, and directed <span class="metadata">Arcs</span>. 
             Places represent potential states; Transitions represent events that change those states.
@@ -59,12 +59,12 @@ export default component$(() => {
         </div>
 
         {/* SECTION 2: THE STATE */}
-        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-black)', paddingTop: '1rem', marginTop: '6rem' }}>
+        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-ui-border)', paddingTop: '1rem', marginTop: '6rem' }}>
           <span class="metadata">Basic Concepts // 02</span>
           <h2 style={{ fontSize: '3rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>The State</h2>
         </div>
         <div style={{ gridColumn: '5 / span 8', marginTop: '9rem' }}>
-          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
+          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
             The current distribution of <span class="metadata" style={{color: 'var(--color-riso-pink)'}}>Tokens</span> across places is called the <strong>Marking</strong>. 
             The marking defines the entire state of the system at any given moment.
           </p>
@@ -81,12 +81,12 @@ export default component$(() => {
         </div>
 
         {/* SECTION 3: THE DYNAMICS */}
-        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-black)', paddingTop: '1rem', marginTop: '6rem' }}>
+        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-ui-border)', paddingTop: '1rem', marginTop: '6rem' }}>
           <span class="metadata">Basic Concepts // 03</span>
           <h2 style={{ fontSize: '3rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>The Dynamics</h2>
         </div>
         <div style={{ gridColumn: '5 / span 8', marginTop: '9rem' }}>
-          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
+          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
             A transition is <strong>Enabled</strong> if its input places have sufficient tokens. 
             Firing an enabled transition consumes tokens from inputs and produces tokens for outputs, moving the system to a new marking.
           </p>
@@ -103,12 +103,12 @@ export default component$(() => {
         </div>
 
         {/* SECTION 4: BEHAVIORAL PATTERNS */}
-        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-black)', paddingTop: '1rem', marginTop: '6rem' }}>
+        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-ui-border)', paddingTop: '1rem', marginTop: '6rem' }}>
           <span class="metadata">Basic Concepts // 04</span>
           <h2 style={{ fontSize: '3rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>Patterns</h2>
         </div>
         <div style={{ gridColumn: '5 / span 8', marginTop: '9rem' }}>
-          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
+          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
             Beyond single steps, we observe fundamental patterns: <span class="metadata">Conflict</span> (choice between events) and 
             <span class="metadata">Concurrency</span> (independent events occurring in parallel).
           </p>
@@ -140,21 +140,21 @@ export default component$(() => {
         </div>
 
         {/* CASE STUDIES SECTION */}
-        <div style={{ gridColumn: '1 / span 12', marginTop: '12rem', marginBottom: '4rem', borderTop: '4px solid var(--color-black)', paddingTop: '2rem' }}>
+        <div style={{ gridColumn: '1 / span 12', marginTop: '12rem', marginBottom: '4rem', borderTop: '4px solid var(--color-ui-border)', paddingTop: '2rem' }}>
           <div class="metadata" style={{ color: 'var(--color-riso-pink)' }}>Module // 02</div>
           <h2 style={{ fontSize: '5rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>Case Studies</h2>
-          <p class="editorial" style={{ fontSize: '1.5rem', marginTop: '1rem', maxWidth: '800px' }}>
+          <p class="editorial" style={{ fontSize: '1.5rem', marginTop: '1rem', maxWidth: '800px', opacity: 0.8 }}>
             Applying discrete-event primitives to solve classical coordination problems in distributed systems.
           </p>
         </div>
 
         {/* CASE STUDY 1: PRODUCER-CONSUMER */}
-        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-black)', paddingTop: '1rem', marginTop: '4rem' }}>
+        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-ui-border)', paddingTop: '1rem', marginTop: '4rem' }}>
           <span class="metadata">Case Study // 01</span>
           <h2 style={{ fontSize: '2.5rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>Producer <br/> Consumer</h2>
         </div>
         <div style={{ gridColumn: '5 / span 8', marginTop: '7rem' }}>
-          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
+          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
             This classic synchronization problem involves a <span class="metadata">Producer</span> generating data and a <span class="metadata">Consumer</span> processing it. 
             A shared <span class="editorial">Buffer</span> with finite capacity acts as the intermediary. 
             We use <span class="metadata">Inhibitor-like logic</span> to ensure the producer stops when the buffer is full.
@@ -181,18 +181,18 @@ export default component$(() => {
               { from: "t2", to: "p4" },
             ]}
           />
-          <div class="metadata" style={{ marginTop: '2rem', padding: '1.5rem', border: '1px solid var(--color-black)', opacity: 0.7 }}>
+          <div class="metadata" style={{ marginTop: '2rem', padding: '1.5rem', border: '1px solid var(--color-ui-border)', opacity: 0.6 }}>
             [ANALYSIS]: The "Available Slots" place acts as a counter. If it reaches 0, the "Produce" transition is disabled, preventing buffer overflow. This is a <strong>Safe Marking</strong> strategy.
           </div>
         </div>
 
         {/* CASE STUDY 2: DINING PHILOSOPHERS */}
-        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-black)', paddingTop: '1rem', marginTop: '8rem' }}>
+        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-ui-border)', paddingTop: '1rem', marginTop: '8rem' }}>
           <span class="metadata">Case Study // 02</span>
           <h2 style={{ fontSize: '2.5rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>Dining <br/> Philosophers</h2>
         </div>
         <div style={{ gridColumn: '5 / span 8', marginTop: '11rem' }}>
-          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
+          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
             A cornerstone of concurrency theory. Philosophers sit around a table, alternating between <span class="metadata">Thinking</span> and <span class="metadata">Eating</span>. 
             However, eating requires two adjacent <span class="editorial">Forks</span>. 
             This case study demonstrates the critical risk of <span class="metadata" style={{color: 'var(--color-riso-pink)'}}>Deadlock</span> when resources are held circularity.
@@ -221,30 +221,30 @@ export default component$(() => {
               { from: "p6", to: "t4" }, { from: "t4", to: "p4" }, { from: "t4", to: "p1" }, { from: "t4", to: "p2" },
             ]}
           />
-          <div class="metadata" style={{ marginTop: '2rem', padding: '1.5rem', border: '1px solid var(--color-black)', opacity: 0.7 }}>
+          <div class="metadata" style={{ marginTop: '2rem', padding: '1.5rem', border: '1px solid var(--color-ui-border)', opacity: 0.6 }}>
             [ANALYSIS]: In this simplified 2-philosopher model, a deadlock is avoided because we require both forks *simultaneously* for the transition to be enabled. In more complex systems with "pick up one at a time" logic, the risk of a circular wait is significantly higher.
           </div>
         </div>
 
         {/* FORMALISM & ANALYSIS SECTION */}
-        <div style={{ gridColumn: '1 / span 12', marginTop: '12rem', marginBottom: '4rem', borderTop: '4px solid var(--color-black)', paddingTop: '2rem' }}>
+        <div style={{ gridColumn: '1 / span 12', marginTop: '12rem', marginBottom: '4rem', borderTop: '4px solid var(--color-ui-border)', paddingTop: '2rem' }}>
           <div class="metadata" style={{ color: 'var(--color-riso-pink)' }}>Module // 03</div>
           <h2 style={{ fontSize: '5rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>Formalism</h2>
-          <p class="editorial" style={{ fontSize: '1.5rem', marginTop: '1rem', maxWidth: '800px' }}>
+          <p class="editorial" style={{ fontSize: '1.5rem', marginTop: '1rem', maxWidth: '800px', opacity: 0.8 }}>
             Beyond visualization lies the rigid mathematical framework used for verification.
           </p>
         </div>
 
-        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-black)', paddingTop: '1rem', marginTop: '4rem' }}>
+        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-ui-border)', paddingTop: '1rem', marginTop: '4rem' }}>
           <span class="metadata">Analysis // 01</span>
           <h2 style={{ fontSize: '2.5rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>Incidence <br/> Matrix</h2>
         </div>
         <div style={{ gridColumn: '5 / span 8', marginTop: '7rem' }}>
-          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
+          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
             A Petri net can be represented as a matrix <strong>W</strong> where each row is a place and each column is a transition. 
             The values represent the change in tokens. This allows us to use linear algebra to find <span class="metadata">Invariants</span>.
           </p>
-          <div class="canvas-block" style={{ padding: '3rem', fontSize: '1.5rem', fontFamily: 'monospace', overflowX: 'auto', background: 'var(--color-white)', border: '2px solid var(--color-black)' }}>
+          <div class="canvas-block" style={{ padding: '3rem', fontSize: '1.5rem', fontFamily: 'monospace', overflowX: 'auto', background: 'var(--color-bg-canvas)', border: '2px solid var(--color-ui-border)' }}>
              <table style={{ width: '100%', minWidth: '400px', textAlign: 'center', borderCollapse: 'collapse' }}>
                <thead>
                  <tr>
@@ -278,16 +278,16 @@ export default component$(() => {
           </div>
         </div>
 
-        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-black)', paddingTop: '1rem', marginTop: '8rem' }}>
+        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-ui-border)', paddingTop: '1rem', marginTop: '8rem' }}>
           <span class="metadata">Analysis // 02</span>
           <h2 style={{ fontSize: '2.5rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>Reachability <br/> Graph</h2>
         </div>
         <div style={{ gridColumn: '5 / span 8', marginTop: '11rem' }}>
-          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem' }}>
+          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
             The <span class="metadata">Reachability Graph</span> maps every possible marking of the system. 
             It is the "State Space" that we traverse to prove properties like <span class="editorial">Safety</span> and <span class="editorial">Liveness</span>.
           </p>
-          <div class="canvas-block" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-white)', border: '2px solid var(--color-black)' }}>
+          <div class="canvas-block" style={{ height: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'var(--color-bg-canvas)', border: '2px solid var(--color-ui-border)' }}>
              <div class="metadata" style={{ textAlign: 'center', fontSize: '1.2rem', lineHeight: 1.5 }}>
                <span style={{ color: 'var(--color-riso-pink)' }}>[M0]</span> --T1--&gt; <span style={{ color: 'var(--color-deep-blue)' }}>[M1]</span> --T2--&gt; <span style={{ color: 'var(--color-riso-pink)' }}>[M2]</span> <br/>
                ^ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; | <br/>
@@ -297,17 +297,17 @@ export default component$(() => {
         </div>
 
         {/* FOOTER */}
-        <footer style={{ gridColumn: '1 / span 12', marginTop: '8rem', borderTop: '1px solid var(--color-black)', paddingTop: '2rem', paddingBottom: '4rem' }}>
+        <footer style={{ gridColumn: '1 / span 12', marginTop: '8rem', borderTop: '1px solid var(--color-ui-border)', paddingTop: '2rem', paddingBottom: '4rem' }}>
           <div class="grid-container" style={{ padding: 0 }}>
             <div style={{ gridColumn: '1 / span 4' }}>
                <div class="metadata" style={{ color: 'var(--color-riso-pink)' }}>Petri-Dynamics.Archive</div>
-               <p class="editorial" style={{ fontSize: '0.8rem', marginTop: '1rem' }}>
+               <p class="editorial" style={{ fontSize: '0.8rem', marginTop: '1rem', opacity: 0.7 }}>
                  A digital archive dedicated to the study of discrete-event systems and concurrent modeling.
                </p>
             </div>
             <div style={{ gridColumn: '5 / span 4' }}>
                <div class="metadata">Documentation</div>
-               <ul class="metadata" style={{ listStyle: 'none', marginTop: '1rem', fontSize: '0.7rem' }}>
+               <ul class="metadata" style={{ listStyle: 'none', marginTop: '1rem', fontSize: '0.7rem', opacity: 0.8 }}>
                  <li>Mathematical Foundations</li>
                  <li>State Space Analysis</li>
                  <li>Invariant Discovery</li>
@@ -315,7 +315,7 @@ export default component$(() => {
             </div>
             <div style={{ gridColumn: '9 / span 4', textAlign: 'right' }}>
                <div class="metadata">v2026.04.19</div>
-               <div class="metadata" style={{ marginTop: '1rem' }}>SYSTEM STATUS: LIVENESS_DETECTED</div>
+               <div class="metadata" style={{ marginTop: '1rem', opacity: 0.6 }}>SYSTEM STATUS: LIVENESS_DETECTED</div>
             </div>
           </div>
         </footer>

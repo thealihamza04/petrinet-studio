@@ -55,11 +55,11 @@ export default component$(() => {
   });
 
   return (
-    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: '#1a1a1a', color: '#eee', overflow: 'hidden', fontFamily: 'Inter, sans-serif' }}>
+    <div style={{ height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--color-bg-app)', color: 'var(--color-text)', overflow: 'hidden', fontFamily: 'var(--font-neo)', transition: '0.3s' }}>
 
       {/* WORKSPACE ENGINE */}
       <div style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
-        <main style={{ flex: 1, background: '#111', position: 'relative' }}>
+        <main style={{ flex: 1, background: 'var(--color-bg-canvas)', position: 'relative' }}>
           {playgroundState.isLoaded && <PlaygroundCanvas sharedState={playgroundState} />}
         </main>
       </div>

@@ -7,20 +7,53 @@
  */
 
 :root {
-  /* Riso-Swiss Palette */
+  /* Riso-Swiss Palette (Static Tokens) */
   --color-riso-pink: #ff4f9a;
   --color-deep-blue: #006c84;
-  --color-paper: #f9f6f0;
-  --color-black: #111111;
-  --color-white: #ffffff;
-
-  /* Typography */
+  
+  /* Typography Tokens */
   --font-neo: 'Inter', sans-serif;
   --font-editorial: 'Playfair Display', serif;
 
   /* Spacing & Borders */
-  --border-brutalist: 2px solid var(--color-black);
   --grid-gap: 24px;
+
+  /* Adaptive Tokens (Default: Light Mode) */
+  --color-bg-app: #f9f6f0; /* Warm Paper */
+  --color-bg-canvas: #ffffff;
+  --color-text: #111111;
+  --color-grid: #e5e5e5;
+  --color-node-fill: #ffffff;
+  --color-node-border: #111111;
+  --color-node-text: #111111;
+  --color-transition-idle: #f5f5f5;
+  --color-ui-bg: rgba(255, 255, 255, 0.85);
+  --color-ui-border: #e0e0e0;
+  --blend-riso: multiply;
+  --grain-opacity: 0.04;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-bg-app: #1a1a1a; /* Obsidian */
+    --color-bg-canvas: #111111;
+    --color-text: #eeeeee;
+    --color-grid: #252525;
+    --color-node-fill: #111111;
+    --color-node-border: #eeeeee;
+    --color-node-text: #aaaaaa;
+    --color-transition-idle: #222222;
+    --color-ui-bg: rgba(40, 40, 40, 0.85);
+    --color-ui-border: #444444;
+    --blend-riso: screen; /* Lighten ink on dark paper */
+    --grain-opacity: 0.08;
+  }
+}
+
+body {
+  background-color: var(--color-bg-app);
+  color: var(--color-text);
+  transition: background-color 0.3s, color 0.3s;
 }
 
 * {
