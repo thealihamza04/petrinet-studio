@@ -279,7 +279,8 @@ export default component$((props: { sharedState: any }) => {
         nodeBorder: "#eee",
         nodeText: "#888",
         transFill: "#222",
-        transEnabled: "#006c84"
+        transEnabled: "#006c84",
+        tokenCountText: "#fff"
       } : {
         grid: "#e5e5e5",
         arc: "rgba(0,0,0,0.15)",
@@ -287,7 +288,8 @@ export default component$((props: { sharedState: any }) => {
         nodeBorder: "#111",
         nodeText: "#666",
         transFill: "#eee",
-        transEnabled: "#006c84"
+        transEnabled: "#006c84",
+        tokenCountText: "#111"
       };
 
       [...ss.places, ...ss.transitions].forEach(node => { if (state.nodeScales[node.id] === undefined) state.nodeScales[node.id] = 1; state.nodeScales[node.id] += (1 - state.nodeScales[node.id]) * 0.15; });
@@ -323,7 +325,7 @@ export default component$((props: { sharedState: any }) => {
         const isSelected = ss.selectedIds.includes(p.id); const isStart = state.arcStartId === p.id; const scale = (state.nodeScales[p.id] || 1); ctx.save(); ctx.translate(p.x, p.y); ctx.scale(scale, scale);
         if (isSelected || isStart) { ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.fillStyle = "rgba(255, 79, 154, 0.15)"; ctx.fill(); ctx.strokeStyle = isStart ? "var(--color-riso-pink)" : "rgba(255, 79, 154, 0.3)"; ctx.lineWidth = isStart ? 2/zoom : 1/zoom; ctx.stroke(); }
         ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI * 2); ctx.fillStyle = colors.nodeFill; ctx.fill(); ctx.strokeStyle = isSelected ? "var(--color-riso-pink)" : colors.nodeBorder; ctx.lineWidth = (isSelected ? 3 : 2)/zoom; ctx.stroke();
-        if (p.tokens > 0) { ctx.beginPath(); ctx.arc(0, 0, 10 + Math.sin(state.time * 5) * 1, 0, Math.PI * 2); ctx.fillStyle = "var(--color-riso-pink)"; ctx.fill(); ctx.fillStyle = "#fff"; ctx.font = `bold ${10/zoom}px 'Inter'`; ctx.textAlign = "center"; ctx.fillText(p.tokens.toString(), 0, 4/zoom); }
+        if (p.tokens > 0) { ctx.beginPath(); ctx.arc(0, 0, 10 + Math.sin(state.time * 5) * 1, 0, Math.PI * 2); ctx.fillStyle = "var(--color-riso-pink)"; ctx.fill(); ctx.fillStyle = colors.tokenCountText; ctx.font = `bold ${10/zoom}px 'Inter'`; ctx.textAlign = "center"; ctx.fillText(p.tokens.toString(), 0, 4/zoom); }
         ctx.restore(); ctx.fillStyle = (isSelected || isStart) ? "var(--color-riso-pink)" : colors.nodeText; ctx.font = `italic ${Math.max(6/zoom, 9/zoom)}px 'Playfair Display'`; ctx.textAlign = "center"; ctx.fillText(p.name, p.x, p.y + (38/zoom));
       });
       ss.transitions.forEach((t: Transition) => {
