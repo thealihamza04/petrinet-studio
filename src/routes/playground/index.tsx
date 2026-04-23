@@ -1,4 +1,4 @@
-import { component$, useStore, $, useVisibleTask$, useSignal, noSerialize } from "@builder.io/qwik";
+import { component$, useStore, $, useVisibleTask$ } from "@builder.io/qwik";
 import PlaygroundCanvas from "../../components/playground-canvas/playground-canvas";
 
 export interface Place { id: string; name: string; tokens: number; x: number; y: number; }
