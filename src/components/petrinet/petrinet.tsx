@@ -60,7 +60,6 @@ export default component$((props: PetrinetProps) => {
     if (!transition) return;
     const transitionArcs = state.arcs.filter(a => a.to === tId || a.from === tId);
     const inputPlaceIds = transitionArcs.filter(a => a.to === tId).map(a => a.from);
-    const outputPlaceIds = transitionArcs.filter(a => a.from === tId).map(a => a.to);
     const isEnabled = inputPlaceIds.every(pId => (state.places.find(p => p.id === pId)?.tokens || 0) > 0);
 
     if (isEnabled) {

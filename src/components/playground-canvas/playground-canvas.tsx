@@ -137,8 +137,8 @@ export default component$((props: { sharedState: any }) => {
       } else {
         let hitArc = null;
         for (const arc of ss.arcs) {
-          const from = ss.places.find(p => p.id === arc.from) || ss.transitions.find(t => t.id === arc.from);
-          const to = ss.places.find(p => p.id === arc.to) || ss.transitions.find(t => t.id === arc.to);
+          const from = ss.places.find((p: Place) => p.id === arc.from) || ss.transitions.find((t: Transition) => t.id === arc.from);
+          const to = ss.places.find((p: Place) => p.id === arc.to) || ss.transitions.find((t: Transition) => t.id === arc.to);
           if (from && to) {
              const dx = to.x - from.x; const dy = to.y - from.y; const len2 = dx*dx + dy*dy; const t = Math.max(0, Math.min(1, ((wX - from.x) * dx + (wY - from.y) * dy) / len2));
              const pX = from.x + t * dx; const pY = from.y + t * dy; const dist = Math.sqrt((wX - pX)**2 + (wY - pY)**2);
