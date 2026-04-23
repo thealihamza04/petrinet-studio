@@ -12,7 +12,7 @@
     "build.client": "vite build",
     "build.preview": "vite build --ssr src/entry.preview.tsx",
     "build.types": "tsc --incremental --noEmit",
-    "deploy": "echo 'Run \"npm run qwik add\" to install a server adapter'",
+    "deploy": "vercel deploy",
     "dev": "vite --mode ssr",
     "dev.debug": "node --inspect-brk ./node_modules/vite/bin/vite.js --mode ssr --force",
     "fmt": "prettier --write .",
@@ -20,7 +20,8 @@
     "lint": "eslint \"src/**/*.ts*\"",
     "preview": "qwik build preview && vite preview --open",
     "start": "vite --open --mode ssr",
-    "qwik": "qwik"
+    "qwik": "qwik",
+    "build.server": "qwik check-client src dist && vite build -c adapters/vercel-edge/vite.config.ts"
   },
   "devDependencies": {
     "@builder.io/qwik": "^1.19.2",
