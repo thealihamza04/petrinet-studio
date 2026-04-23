@@ -191,6 +191,33 @@ export default component$((props: { sharedState: any }) => {
     state.isPanning = false; state.isDragging = false; state.marqueeStart = null; state.marqueeEnd = null;
   });
 
+  const handleNodeRename = $((e: MouseEvent) => {
+    if (state.mode !== 'select' || !canvasRef.value) return;
+    const rect = canvasRef.value.getBoundingClientRect();
+    const mX = e.clientX - rect.left; const mY = e.clientY - rect.top;
+
+    const clickedP = ss.places.find((p: Place) => {
+      const sX = p.x * ss.camera.zoom + ss.camera.x + rect.width / 2;
+      const sY = p.y * ss.camera.zoom + ss.camera.y + rect.height / 2;
+      return Math.sqrt((sX - mX) ** 2 + (sY - mY) ** 2) < 25;
+    });
+    const clickedT = ss.transitions.find((t: Transition) => {
+      const sX = t.x * ss.camera.zoom + ss.camera.x + rect.width / 2;
+      const sY = t.y * ss.camera.zoom + ss.camera.y + rect.height / 2;
+      return Math.abs(sX - mX) < 25 && Math.abs(sY - mY) < 25;
+    });
+
+    const clickedNode = clickedP || clickedT;
+    if (!clickedNode) return;
+    const nextName = prompt('Rename node', clickedNode.name);
+    if (nextName === null) return;
+    const trimmedName = nextName.trim();
+    if (!trimmedName) return;
+
+    if (clickedP) ss.places = ss.places.map((p: Place) => p.id === clickedP.id ? { ...p, name: trimmedName } : p);
+    else ss.transitions = ss.transitions.map((t: Transition) => t.id === clickedT!.id ? { ...t, name: trimmedName } : t);
+  });
+
   const handleWheel = $((e: WheelEvent) => {
     e.preventDefault(); if (!canvasRef.value) return;
     const rect = canvasRef.value.getBoundingClientRect();
@@ -388,7 +415,7 @@ export default component$((props: { sharedState: any }) => {
       <div style={{ position: 'absolute', bottom: '24px', right: '24px', zIndex: 100 }}>
          <button onClick$={() => state.isSimulating = !state.isSimulating} style={{ background: state.isSimulating ? '#ff4f9a' : 'var(--color-ui-bg)', backdropFilter: 'blur(10px)', color: state.isSimulating ? 'white' : 'var(--color-riso-pink)', border: '2px solid var(--color-riso-pink)', width: '56px', height: '56px', borderRadius: '28px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: state.isSimulating ? '0 0 32px rgba(255, 79, 154, 0.6)' : '0 8px 24px rgba(0,0,0,0.5)', transition: '0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275)', transform: state.isSimulating ? 'scale(1.1)' : 'scale(1)' }} > {state.isSimulating ? ( <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M6 4h4v16H6zM14 4h4v16h-4z"/></svg> ) : ( <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor" style={{ marginLeft: '3px' }}><path d="M5 3l14 9-14 9V3z"/></svg> )} </button>
       </div>
-      <canvas ref={canvasRef} onMouseDown$={handleMouseDown} onMouseMove$={handleMouseMove} onMouseUp$={handleMouseUp} onWheel$={handleWheel} style={{ width: '100%', height: '100%', background: 'var(--color-bg-canvas)', cursor: state.isPanning ? 'grabbing' : state.mode === 'pan' ? 'grab' : state.mode === 'select' ? 'default' : state.mode === 'place' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="6" stroke="white" stroke-width="2" fill="black" fill-opacity="0.2"/></svg>') 12 12, crosshair` : state.mode === 'transition' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="12" height="12" stroke="white" stroke-width="2" fill="black" fill-opacity="0.2"/></svg>') 12 12, crosshair` : state.mode === 'token' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="5" fill="%23ff4f9a" stroke="white" stroke-width="1.5"/></svg>') 12 12, crosshair` : 'crosshair' }} />
+      <canvas ref={canvasRef} onMouseDown$={handleMouseDown} onMouseMove$={handleMouseMove} onMouseUp$={handleMouseUp} onDblClick$={handleNodeRename} onWheel$={handleWheel} style={{ width: '100%', height: '100%', background: 'var(--color-bg-canvas)', cursor: state.isPanning ? 'grabbing' : state.mode === 'pan' ? 'grab' : state.mode === 'select' ? 'default' : state.mode === 'place' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="6" stroke="white" stroke-width="2" fill="black" fill-opacity="0.2"/></svg>') 12 12, crosshair` : state.mode === 'transition' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="6" y="6" width="12" height="12" stroke="white" stroke-width="2" fill="black" fill-opacity="0.2"/></svg>') 12 12, crosshair` : state.mode === 'token' ? `url('data:image/svg+xml;utf8,<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="5" fill="%23ff4f9a" stroke="white" stroke-width="1.5"/></svg>') 12 12, crosshair` : 'crosshair' }} />
     </div>
   );
 });
