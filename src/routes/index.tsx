@@ -296,6 +296,51 @@ export default component$(() => {
           </div>
         </div>
 
+        <div style={{ gridColumn: '1 / span 4', borderTop: '2px solid var(--color-ui-border)', paddingTop: '1rem', marginTop: '8rem' }}>
+          <span class="metadata">Analysis // 03</span>
+          <h2 style={{ fontSize: '2.5rem', textTransform: 'uppercase', fontWeight: 900, marginTop: '1rem' }}>Formal <br/> Analysis</h2>
+        </div>
+        <div style={{ gridColumn: '5 / span 8', marginTop: '11rem' }}>
+          <p class="editorial" style={{ fontSize: '1.25rem', marginBottom: '2rem', opacity: 0.9 }}>
+            Strategic adoption is driven by analytic rigor. Formal workflows expose provable guarantees on behavior, safety, and scalability.
+          </p>
+          <div
+            class="canvas-block"
+            style={{
+              background: 'var(--color-bg-canvas)',
+              border: '2px solid var(--color-ui-border)',
+              padding: '2rem',
+              display: 'grid',
+              gap: '1.25rem',
+            }}
+          >
+            <div style={{ borderLeft: '4px solid var(--color-riso-pink)', paddingLeft: '1rem' }}>
+              <div class="metadata" style={{ color: 'var(--color-riso-pink)' }}>Feature // 01</div>
+              <p style={{ marginTop: '0.5rem', fontSize: '1.05rem' }}>
+                <strong>Reachability graph / coverability tree</strong> generation for finite and potentially unbounded models.
+              </p>
+            </div>
+            <div style={{ borderLeft: '4px solid var(--color-deep-blue)', paddingLeft: '1rem' }}>
+              <div class="metadata" style={{ color: 'var(--color-deep-blue)' }}>Feature // 02</div>
+              <p style={{ marginTop: '0.5rem', fontSize: '1.05rem' }}>
+                <strong>Liveness, boundedness, and deadlock detection</strong> to validate operational viability before deployment.
+              </p>
+            </div>
+            <div style={{ borderLeft: '4px solid var(--color-riso-pink)', paddingLeft: '1rem' }}>
+              <div class="metadata" style={{ color: 'var(--color-riso-pink)' }}>Feature // 03</div>
+              <p style={{ marginTop: '0.5rem', fontSize: '1.05rem' }}>
+                <strong>Invariant analysis</strong> including <em>P-invariants</em> and <em>T-invariants</em> for conservation and cyclic-behavior proofs.
+              </p>
+            </div>
+            <div style={{ borderLeft: '4px solid var(--color-deep-blue)', paddingLeft: '1rem' }}>
+              <div class="metadata" style={{ color: 'var(--color-deep-blue)' }}>Feature // 04</div>
+              <p style={{ marginTop: '0.5rem', fontSize: '1.05rem' }}>
+                <strong>State-space reduction</strong> via partial-order reduction and symmetry reduction to control combinatorial explosion.
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* FOOTER */}
         <footer style={{ gridColumn: '1 / span 12', marginTop: '8rem', borderTop: '1px solid var(--color-ui-border)', paddingTop: '2rem', paddingBottom: '4rem' }}>
           <div class="grid-container" style={{ padding: 0 }}>
